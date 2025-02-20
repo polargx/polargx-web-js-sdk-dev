@@ -1,29 +1,43 @@
 import { linkAttributionSDKService } from "./BEService";
 import baseConfig from "./config";
+import { BranchInitOptions, BranchCallback, BranchResponse, BranchError } from "./types/index";
 
-interface BranchInitOptions {
-    baseUrl?: string;
-    [key: string]: any;
-}
-
-interface BranchResponse {
-    data_parsed?: {
-      bp_action?: string;
-      [key: string]: any;
+const parseUrlData = () => {
+    if (typeof window === 'undefined') {
+        return { domain: '', slug: '', trackData: {} };
+    }
+  
+    const urlParams = new URLSearchParams(window.location.search);
+    let attributionUrl = urlParams.get('$linkattribution_url') || '';
+    if (!attributionUrl.startsWith('http')) {
+        attributionUrl = `https://${attributionUrl}`;
+    }
+  
+    let domain = '';
+    let slug = '';
+    
+    try {
+        const url = new URL(attributionUrl);
+        const pathname = url.pathname;
+        const parts = pathname.replace(/^\//, '').split('/');
+        
+        // Get slug from pathname
+        slug = parts[0] || '';
+        
+        // Get domain from hostname (e.g., "dongo111" from "dongo111.webapp.ai")
+        domain = url.hostname.split('.')[0] || '';
+        } catch (error) {
+            console.error('Failed to parse attribution URL:', error);
+    }
+  
+    const trackData = {
+        unid: urlParams.get('$linkattribution_clickid') || undefined,
+        url: attributionUrl,
+        sdkUsed: urlParams.get('$linkattribution_used') || undefined
     };
-    session_id?: string;
-    identity_id?: string;
-    link?: string;
-    [key: string]: any;
-}
-
-interface BranchError extends Error {
-    code?: string;
-    message: string;
-}
-
-type BranchCallback = (error: BranchError | null, data?: BranchResponse | null) => void;
-
+  
+    return { domain, slug, trackData };
+};
 
 export class LinkAttributionSDK {
     private baseUrl: string;
@@ -42,13 +56,9 @@ export class LinkAttributionSDK {
         try{
             this.branchKey = branchKey;
         
-            const urlParams = new URLSearchParams(
-                typeof window !== 'undefined' ? window.location.search : ''
-            );
-            const domain = urlParams.get('domain') || '';
-            const slug = urlParams.get('slug') || '';
+            const { domain, slug } = parseUrlData();
 
-            const linkData = await linkAttributionSDKService.getLinkData(urlParams.get('domain') || '', urlParams.get('slug') || '', branchKey)
+            const linkData = await linkAttributionSDKService.getLinkData(domain || '', slug || '', branchKey)
             if (!linkData) {
                 throw new Error('Failed to get link data');
             }

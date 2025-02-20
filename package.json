@@ -1,19 +1,24 @@
 {
-  "name": "linkattribution-web-sdk",
-  "version": "1.0.0",
-  "description": "",
+  "name": "linkattribution-web-sdk-test",
+  "version": "1.0.3",
+  "description": "Link Attribution Web SDK for web applications",
   "main": "dist/index.js",
-  "type": "module",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
   "scripts": {
-    "build": "tsc",
-    "start": "ts-node --esm src/test.ts",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "clean": "rimraf dist",
+    "build": "npm run clean && tsup",
+    "prepublishOnly": "npm run build"
   },
-  "author": "",
-  "license": "ISC",
+  "keywords": ["link", "attribution", "sdk"],
+  "license": "MIT",
   "devDependencies": {
-    "@types/node": "^22.13.4",
     "typescript": "^5.0.0",
-    "ts-node": "^10.9.1"
+    "@types/node": "^20.0.0",
+    "rimraf": "^5.0.0",
+    "tsup": "^7.2.0"
   }
 }
