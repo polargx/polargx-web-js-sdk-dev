@@ -5,9 +5,7 @@ export class LinkAttributionSDK {
         this.baseUrl = baseConfig.endpoint;
         this.branchKey = null;
     }
-    setBaseUrl(url) {
-        this.baseUrl = url.replace(/\/$/, '');
-    }
+ 
     async init(branchKey, options, callback) {
         try {
             this.branchKey = branchKey;
