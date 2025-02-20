@@ -6,17 +6,17 @@ A lightweight implementation of Link Attribution Web SDK for web applications.
 
 ```bash
 # Using npm
-npm install linkattribution-web-sdk
+npm i linkattribution-web-sdk-test
 
 # Using yarn
-yarn add linkattribution-web-sdk
+yarn add linkattribution-web-sdk-test
 ```
 
 ## Usage
 
 ```typescript
 // Basic initialization
-import { LinkAttributionSDK } from 'linkattribution-web-sdk';
+import { LinkAttributionSDK } from 'linkattribution-web-sdk-test';
 
 const linkAttributionSdk = new LinkAttributionSDK();
 
