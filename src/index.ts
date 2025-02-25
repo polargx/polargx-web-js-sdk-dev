@@ -4,7 +4,11 @@ import { BranchInitOptions, BranchCallback, BranchResponse, BranchError } from "
 
 const parseUrlData = () => {
     if (typeof window === 'undefined') {
-        return { domain: '', slug: '', trackData: {} };
+        return { domain: '', slug: '', trackData: {
+            unid: undefined,
+            url: "",
+            sdkUsed: undefined
+        } };
     }
   
     const urlParams = new URLSearchParams(window.location.search);
@@ -39,6 +43,10 @@ const parseUrlData = () => {
     return { domain, slug, trackData };
 };
 
+const isLinkAttributionUrl = (url: string) => {
+    return url.includes(".makelabs.ai")
+}
+
 export class LinkAttributionSDK {
     private baseUrl: string;
     private branchKey: string | null;
@@ -56,8 +64,10 @@ export class LinkAttributionSDK {
         try{
             this.branchKey = branchKey;
         
-            const { domain, slug } = parseUrlData();
-
+            const { domain, trackData, slug } = parseUrlData();
+            if(!isLinkAttributionUrl(trackData.url)){
+                throw new Error('Not a valid attribution URL');
+            }
             const linkData = await linkAttributionSDKService.getLinkData(domain || '', slug || '', branchKey)
             if (!linkData) {
                 throw new Error('Failed to get link data');

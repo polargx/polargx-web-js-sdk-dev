@@ -1,6 +1,5 @@
 {
   "name": "linkattribution-web-sdk-dev",
-  "private":true,
   "version": "1.0.1",
   "description": "Link Attribution Web SDK for web applications",
   "main": "dist/index.js",
