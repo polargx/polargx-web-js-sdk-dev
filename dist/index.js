@@ -59,7 +59,11 @@ var linkAttributionSDKService = new LinkAttributionSDKService();
 // src/index.ts
 var parseUrlData = () => {
   if (typeof window === "undefined") {
-    return { domain: "", slug: "", trackData: {} };
+    return { domain: "", slug: "", trackData: {
+      unid: void 0,
+      url: "",
+      sdkUsed: void 0
+    } };
   }
   const urlParams = new URLSearchParams(window.location.search);
   let attributionUrl = urlParams.get("$linkattribution_url") || "";
@@ -84,6 +88,9 @@ var parseUrlData = () => {
   };
   return { domain, slug, trackData };
 };
+var isLinkAttributionUrl = (url) => {
+  return url.includes(".makelabs.ai");
+};
 var LinkAttributionSDK = class {
   constructor() {
     this.baseUrl = config_default.endpoint;
@@ -95,7 +102,10 @@ var LinkAttributionSDK = class {
   async init(branchKey, options, callback) {
     try {
       this.branchKey = branchKey;
-      const { domain, slug } = parseUrlData();
+      const { domain, trackData, slug } = parseUrlData();
+      if (!isLinkAttributionUrl(trackData.url)) {
+        throw new Error("Not a valid attribution URL");
+      }
       const linkData = await linkAttributionSDKService.getLinkData(domain || "", slug || "", branchKey);
       if (!linkData) {
         throw new Error("Failed to get link data");
