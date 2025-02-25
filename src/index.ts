@@ -66,7 +66,7 @@ export class LinkAttributionSDK {
         
             const { domain, trackData, slug } = parseUrlData();
             if(!isLinkAttributionUrl(trackData.url)){
-                throw new Error('Not a valid attribution URL');
+                return
             }
             const linkData = await linkAttributionSDKService.getLinkData(domain || '', slug || '', branchKey)
             if (!linkData) {
