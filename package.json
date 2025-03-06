@@ -1,7 +1,7 @@
 {
-  "name": "linkattribution-web-sdk-dev",
-  "version": "1.0.1",
-  "description": "Link Attribution Web SDK for web applications",
+  "name": "polargx-web-sdk",
+  "version": "0.1.0",
+  "description": "PolarGX Web SDK for web applications",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
   "types": "dist/index.d.ts",
@@ -13,7 +13,7 @@
     "build": "npm run clean && tsup",
     "prepublishOnly": "npm run build"
   },
-  "keywords": ["link", "attribution", "sdk"],
+  "keywords": ["polar", "polargx", "link attribution", "sdk"],
   "license": "MIT",
   "devDependencies": {
     "typescript": "^5.0.0",

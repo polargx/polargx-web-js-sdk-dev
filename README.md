@@ -1,27 +1,27 @@
-# Link Attribution Web SDK
+# PolarGX Web SDK
 
-A lightweight implementation of Link Attribution Web SDK for web applications.
+A lightweight implementation of PolarGX Web SDK for web applications.
 
 ## Installation
 
 ```bash
 # Using npm
-npm i linkattribution-web-sdk-dev
+npm i polargx-web-sdk
 
 # Using yarn
-yarn add linkattribution-web-sdk-dev
+yarn add polargx-web-sdk
 ```
 
 ## Usage
 
 ```typescript
 // Basic initialization
-import { LinkAttributionSDK } from 'linkattribution-web-sdk-dev';
+import { PolarApp } from 'polargx-web-sdk';
 
-const linkAttributionSdk = new LinkAttributionSDK();
+const polarApp = new PolarApp();
 
 // Initialize with callback
-linkAttributionSdk.init('your_api_key', undefined, (error, data) => {
+polarApp.init('your_api_key', undefined, (error, data) => {
   if (error) {
     console.error('Error:', error);
     return;
@@ -32,24 +32,12 @@ linkAttributionSdk.init('your_api_key', undefined, (error, data) => {
 
   // Access parsed data
   const parsedData = data?.data_parsed;
-  
-  // Example: Handle deep link data
-  if (parsedData?.analyticsTags) {
-    console.log('Campaign:', parsedData.analyticsTags.campaign);
-    console.log('Channel:', parsedData.analyticsTags.channel);
-  }
-
-  // Example: Handle social media tags
-  if (parsedData?.socialMediaTags) {
-    console.log('Title:', parsedData.socialMediaTags.title);
-    console.log('Description:', parsedData.socialMediaTags.description);
-  }
 });
 
 // Initialize with async/await
 async function initSdk() {
   try {
-    const data = await linkAttributionSdk.init('your_api_key');
+    const data = await polarApp.init('your_api_key');
     console.log('Initialization successful:', data);
   } catch (error) {
     console.error('Initialization failed:', error);
@@ -58,39 +46,20 @@ async function initSdk() {
 
 // Example response data structure
 interface SdkResponse {
-    data_parsed: {
-        analyticsTags: {
-            campaign: string;
-            channel: string;
-            feature: string;
-            tags: string;
-        };
-        socialMediaTags: {
-            title: string;
-            description: string;
-        };
-        url: string;
-        slug: string;
-        data: {
-            [key: string]: string;
-        };
-    };
-    session_id: string;
-    identity_id: string;
-    link: string;
+  //working
 }
 ```
 
 ## API Reference
 
-### init(branchKey: string, options?: BranchInitOptions, callback?: BranchCallback)
+### init(apiKey: string, options?: PolarInitOptions, callback?: PolarCallback)
 
-Initialize the SDK with your branch key and handle deep linking data.
+Initialize the SDK with your Polar API key and handle deep linking data.
 
 #### Parameters
 
-- `branchKey` (string, required): Your Link Attribution API key
-- `options` (BranchInitOptions, optional): Configuration options
+- `apiKey` (string, required): Your Polar API key
+- `options` (PolarInitOptions, optional): Configuration options
 - `callback` (function, optional): Callback function for handling initialization result
 
 #### Callback Parameters

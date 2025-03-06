@@ -20,27 +20,36 @@ var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: tru
 // src/index.ts
 var src_exports = {};
 __export(src_exports, {
-  LinkAttributionSDK: () => LinkAttributionSDK,
+  PolarApp: () => PolarApp,
   default: () => src_default
 });
 module.exports = __toCommonJS(src_exports);
 
-// src/config.ts
-var baseConfig = {
-  endpoint: "https://jw4xix6q44.execute-api.us-east-1.amazonaws.com/dev"
+// src/configs.ts
+var configs = {
+  brand: "Polar",
+  env: src_default.isDevelopmentEnabled ? {
+    name: "Development",
+    server: "https://lydxigat68.execute-api.us-east-1.amazonaws.com/dev",
+    supportedBaseDomains: ["makelabs.ai"]
+  } : {
+    name: "Production",
+    server: "https://lydxigat68.execute-api.us-east-1.amazonaws.com/prod",
+    supportedBaseDomains: ["gxlnk.com"]
+  }
 };
-var config_default = baseConfig;
+var configs_default = configs;
 
-// src/BEService.ts
-var LinkAttributionSDKService = class {
-  async getLinkData(domain, slug, branchKey) {
+// src/APIService.ts
+var APIService = class {
+  async getLinkData(domain, slug, apiKey) {
     try {
-      const url = new URL(`${config_default.endpoint}/sdk/v1/links/data`);
+      const url = new URL(`${configs_default.env.server}/sdk/v1/links/data`);
       url.searchParams.append("domain", domain);
       url.searchParams.append("slug", slug);
       const response = await fetch(url.toString(), {
         headers: {
-          "x-api-key": branchKey
+          "x-api-key": apiKey
         }
       });
       if (!response.ok) {
@@ -54,7 +63,7 @@ var LinkAttributionSDKService = class {
     }
   }
 };
-var linkAttributionSDKService = new LinkAttributionSDKService();
+var apiService = new APIService();
 
 // src/index.ts
 var parseUrlData = () => {
@@ -66,51 +75,57 @@ var parseUrlData = () => {
     } };
   }
   const urlParams = new URLSearchParams(window.location.search);
-  let attributionUrl = urlParams.get("$linkattribution_url") || "";
-  if (!attributionUrl.startsWith("http")) {
-    attributionUrl = `https://${attributionUrl}`;
+  let clickUrl = urlParams.get("__clurl") || "";
+  if (!clickUrl.startsWith("http")) {
+    clickUrl = `https://${clickUrl}`;
   }
   let domain = "";
   let slug = "";
   try {
-    const url = new URL(attributionUrl);
+    const url = new URL(clickUrl);
     const pathname = url.pathname;
     const parts = pathname.replace(/^\//, "").split("/");
     slug = parts[0] || "";
     domain = url.hostname.split(".")[0] || "";
   } catch (error) {
-    console.error("Failed to parse attribution URL:", error);
+    console.error("Failed to parse Click URL:", error);
   }
   const trackData = {
-    unid: urlParams.get("$linkattribution_clickid") || void 0,
-    url: attributionUrl,
-    sdkUsed: urlParams.get("$linkattribution_used") || void 0
+    unid: urlParams.get("__clid") || void 0,
+    url: clickUrl,
+    sdkUsed: urlParams.get("__clsdkused") || void 0
   };
   return { domain, slug, trackData };
 };
-var isLinkAttributionUrl = (url) => {
-  return url.includes(".makelabs.ai");
+var isPolarUrl = (url) => {
+  const host = new URL(url).host;
+  for (const baseDomain in configs_default.env.supportedBaseDomains) {
+    if (host.endsWith("." + baseDomain)) {
+      return true;
+    }
+  }
+  return false;
 };
-var LinkAttributionSDK = class {
+var PolarApp = class {
   constructor() {
-    this.baseUrl = config_default.endpoint;
-    this.branchKey = null;
+    this.baseUrl = configs_default.env.server;
+    this.apiKey = null;
   }
   setBaseUrl(url) {
     this.baseUrl = url.replace(/\/$/, "");
   }
-  async init(branchKey, options, callback) {
+  async init(apiKey, options, callback) {
     try {
-      this.branchKey = branchKey;
+      this.apiKey = apiKey;
       const { domain, trackData, slug } = parseUrlData();
-      if (!isLinkAttributionUrl(trackData.url)) {
+      if (!isPolarUrl(trackData.url)) {
         return;
       }
-      const linkData = await linkAttributionSDKService.getLinkData(domain || "", slug || "", branchKey);
+      const linkData = await apiService.getLinkData(domain || "", slug || "", apiKey);
       if (!linkData) {
         throw new Error("Failed to get link data");
       }
-      const branchResponse = {
+      const polarResponse = {
         data_parsed: {
           analytics_tags: linkData.data.sdkLinkData.analyticsTags,
           ...linkData.data.sdkLinkData.data
@@ -121,23 +136,24 @@ var LinkAttributionSDK = class {
         slug: linkData.data.sdkLinkData.slug
       };
       if (typeof callback === "function") {
-        callback(null, branchResponse);
+        callback(null, polarResponse);
       }
     } catch (error) {
-      console.error("Branch initialization error:", error);
+      console.error("Polar initialization error:", error);
       if (typeof callback === "function") {
-        const branchError = {
-          name: "BranchError",
+        const polarError = {
+          name: "PolarError",
           message: error instanceof Error ? error.message : "Unknown error",
           code: error instanceof Error ? error.name : "UNKNOWN_ERROR"
         };
-        callback(branchError, null);
+        callback(polarError, null);
       }
     }
   }
 };
+PolarApp.isDevelopmentEnabled = false;
 if (typeof window !== "undefined") {
-  window.linkAttributionSdk = new LinkAttributionSDK();
+  window.polarApp = new PolarApp();
 }
 function generateSessionId() {
   return "session_" + Math.random().toString(36).substr(2, 9);
@@ -145,9 +161,9 @@ function generateSessionId() {
 function generateIdentityId() {
   return "identity_" + Math.random().toString(36).substr(2, 9);
 }
-var src_default = LinkAttributionSDK;
+var src_default = PolarApp;
 // Annotate the CommonJS export names for ESM import in node:
 0 && (module.exports = {
-  LinkAttributionSDK
+  PolarApp
 });
 //# sourceMappingURL=index.js.map

@@ -1,6 +1,6 @@
-import { linkAttributionSDKService } from "./BEService";
-import baseConfig from "./config";
-import { BranchInitOptions, BranchCallback, BranchResponse, BranchError } from "./types/index";
+import { apiService } from "./APIService";
+import configs from "./configs";
+import { PolarInitOptions, PolarCallback, PolarResponse, PolarError } from "./types/index";
 
 const parseUrlData = () => {
     if (typeof window === 'undefined') {
@@ -12,16 +12,16 @@ const parseUrlData = () => {
     }
   
     const urlParams = new URLSearchParams(window.location.search);
-    let attributionUrl = urlParams.get('$linkattribution_url') || '';
-    if (!attributionUrl.startsWith('http')) {
-        attributionUrl = `https://${attributionUrl}`;
+    let clickUrl = urlParams.get('__clurl') || '';
+    if (!clickUrl.startsWith('http')) {
+        clickUrl = `https://${clickUrl}`;
     }
   
     let domain = '';
     let slug = '';
     
     try {
-        const url = new URL(attributionUrl);
+        const url = new URL(clickUrl);
         const pathname = url.pathname;
         const parts = pathname.replace(/^\//, '').split('/');
         
@@ -30,50 +30,58 @@ const parseUrlData = () => {
         
         // Get domain from hostname (e.g., "dongo111" from "dongo111.webapp.ai")
         domain = url.hostname.split('.')[0] || '';
-        } catch (error) {
-            console.error('Failed to parse attribution URL:', error);
+    } catch (error) {
+            console.error('Failed to parse Click URL:', error);
     }
   
     const trackData = {
-        unid: urlParams.get('$linkattribution_clickid') || undefined,
-        url: attributionUrl,
-        sdkUsed: urlParams.get('$linkattribution_used') || undefined
+        unid: urlParams.get('__clid') || undefined,
+        url: clickUrl,
+        sdkUsed: urlParams.get('__clsdkused') || undefined
     };
   
     return { domain, slug, trackData };
 };
 
-const isLinkAttributionUrl = (url: string) => {
-    return url.includes(".makelabs.ai")
+const isPolarUrl = (url: string): boolean => {
+    const host = (new URL(url)).host
+    for (const baseDomain in configs.env.supportedBaseDomains) {
+        if (host.endsWith('.' + baseDomain)) {
+            return true
+        }
+    }
+    return false
 }
 
-export class LinkAttributionSDK {
+export class PolarApp {
     private baseUrl: string;
-    private branchKey: string | null;
+    private apiKey: string | null;
+
+    static isDevelopmentEnabled = false
   
     constructor() {
-        this.baseUrl = baseConfig.endpoint;
-        this.branchKey = null;
+        this.baseUrl = configs.env.server;
+        this.apiKey = null;
     }
   
     setBaseUrl(url: string): void {
         this.baseUrl = url.replace(/\/$/, '');
     }
   
-    async init(branchKey: string, options?: BranchInitOptions | undefined, callback?: BranchCallback) {
+    async init(apiKey: string, options?: PolarInitOptions | undefined, callback?: PolarCallback) {
         try{
-            this.branchKey = branchKey;
+            this.apiKey = apiKey;
         
             const { domain, trackData, slug } = parseUrlData();
-            if(!isLinkAttributionUrl(trackData.url)){
+            if(!isPolarUrl(trackData.url)){
                 return
             }
-            const linkData = await linkAttributionSDKService.getLinkData(domain || '', slug || '', branchKey)
+            const linkData = await apiService.getLinkData(domain || '', slug || '', apiKey)
             if (!linkData) {
                 throw new Error('Failed to get link data');
             }
 
-            const branchResponse: BranchResponse = {
+            const polarResponse: PolarResponse = {
                 data_parsed: {
                     analytics_tags: linkData.data.sdkLinkData.analyticsTags,
                     ...linkData.data.sdkLinkData.data
@@ -85,24 +93,24 @@ export class LinkAttributionSDK {
             };
 
             if (typeof callback === 'function') {
-                callback(null, branchResponse);
+                callback(null, polarResponse);
             }
         }catch (error) {
-            console.error('Branch initialization error:', error);
+            console.error('Polar initialization error:', error);
             if (typeof callback === 'function') {
-                const branchError: BranchError = {
-                    name: 'BranchError',
+                const polarError: PolarError = {
+                    name: 'PolarError',
                     message: error instanceof Error ? error.message : 'Unknown error',
                     code: error instanceof Error ? error.name : 'UNKNOWN_ERROR'
                 };
-                callback(branchError, null);
+                callback(polarError, null);
             }
         }
     }
 }
 
 if (typeof window !== 'undefined') {
-    (window as any).linkAttributionSdk = new LinkAttributionSDK();
+    (window as any).polarApp = new PolarApp();
 }
 function generateSessionId(): string {
     return 'session_' + Math.random().toString(36).substr(2, 9);
@@ -111,4 +119,4 @@ function generateSessionId(): string {
 function generateIdentityId(): string {
     return 'identity_' + Math.random().toString(36).substr(2, 9);
 }
-export default LinkAttributionSDK;
+export default PolarApp;

@@ -1,4 +1,4 @@
-import baseConfig from "./config.js";
+import configs from "./configs.js";
 
 interface AnalyticsTags {
     campaign: string;
@@ -30,17 +30,17 @@ export interface LinkResponse {
     };
 }
 
-class LinkAttributionSDKService {
-    async getLinkData(domain: string, slug: string, branchKey: string): Promise<LinkResponse | undefined> {
+class APIService {
+    async getLinkData(domain: string, slug: string, apiKey: string): Promise<LinkResponse | undefined> {
         try {
             // Fix URL parameters format
-            const url = new URL(`${baseConfig.endpoint}/sdk/v1/links/data`);
+            const url = new URL(`${configs.env.server}/sdk/v1/links/data`);
             url.searchParams.append('domain', domain);
             url.searchParams.append('slug', slug);
 
             const response = await fetch(url.toString(), {
                 headers: {
-                    "x-api-key": branchKey
+                    "x-api-key": apiKey
                 }
             });
 
@@ -60,7 +60,7 @@ class LinkAttributionSDKService {
 }
 
 // Create singleton instance
-const linkAttributionSDKService = new LinkAttributionSDKService();
+const apiService = new APIService();
 
-export { linkAttributionSDKService };
-export default LinkAttributionSDKService;
+export { apiService };
+export default APIService;

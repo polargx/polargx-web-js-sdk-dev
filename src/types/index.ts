@@ -1,10 +1,10 @@
 
-export interface BranchInitOptions {
+export interface PolarInitOptions {
     baseUrl?: string;
     [key: string]: any;
 }
 
-export interface BranchResponse {
+export interface PolarResponse {
     data_parsed?: {
         bp_action?: string;
         [key: string]: any;
@@ -15,9 +15,9 @@ export interface BranchResponse {
     [key: string]: any;
 }
 
-export interface BranchError extends Error {
+export interface PolarError extends Error {
     code?: string;
     message: string;
 }
 
-export type BranchCallback = (error: BranchError | null, data?: BranchResponse | null) => void;
+export type PolarCallback = (error: PolarError | null, data?: PolarResponse | null) => void;
