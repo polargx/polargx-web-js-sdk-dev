@@ -1,5 +1,5 @@
-import { apiService } from "./APIService";
-import configs from "./configs";
+import APIService from "./APIService";
+import getConfigs from "./configs";
 import { PolarInitOptions, PolarCallback, PolarResponse, PolarError } from "./types/index";
 
 const parseUrlData = () => {
@@ -43,29 +43,21 @@ const parseUrlData = () => {
     return { domain, slug, trackData };
 };
 
-const isPolarUrl = (url: string): boolean => {
-    const host = (new URL(url)).host
-    for (const baseDomain in configs.env.supportedBaseDomains) {
-        if (host.endsWith('.' + baseDomain)) {
-            return true
-        }
-    }
-    return false
-}
-
 export class PolarSDK {
-    private baseUrl: string;
     private apiKey: string | null;
 
-    // static isDevelopmentEnabled = false
+    configs = getConfigs(false);
+    apiService = new APIService(this.configs)
+
+    static isDevelopmentEnabled = false
   
     constructor() {
-        this.baseUrl = configs.env.server;
         this.apiKey = null;
     }
-  
-    setBaseUrl(url: string): void {
-        this.baseUrl = url.replace(/\/$/, '');
+
+    setDevelopmentMode() {
+        this.configs = getConfigs(true)
+        this.apiService = new APIService(this.configs)
     }
   
     async init(apiKey: string, options?: PolarInitOptions | undefined, callback?: PolarCallback) {
@@ -73,10 +65,10 @@ export class PolarSDK {
             this.apiKey = apiKey;
         
             const { domain, trackData, slug } = parseUrlData();
-            if(!isPolarUrl(trackData.url)){
+            if(!this.isPolarUrl(trackData.url)){
                 return
             }
-            const linkData = await apiService.getLinkData(domain || '', slug || '', apiKey)
+            const linkData = await this.apiService.getLinkData(domain || '', slug || '', apiKey)
             if (!linkData) {
                 throw new Error('Failed to get link data');
             }
@@ -106,6 +98,16 @@ export class PolarSDK {
                 callback(polarError, null);
             }
         }
+    }
+
+    isPolarUrl = (url: string): boolean => {
+        const host = (new URL(url)).host
+        for (const baseDomain in this.configs.env.supportedBaseDomains) {
+            if (host.endsWith('.' + baseDomain)) {
+                return true
+            }
+        }
+        return false
     }
 }
 

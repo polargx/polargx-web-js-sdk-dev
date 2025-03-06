@@ -25,26 +25,14 @@ __export(src_exports, {
 });
 module.exports = __toCommonJS(src_exports);
 
-// src/configs.ts
-var configs = {
-  brand: "Polar",
-  env: false ? {
-    name: "Development",
-    server: "https://lydxigat68.execute-api.us-east-1.amazonaws.com/dev",
-    supportedBaseDomains: ["makelabs.ai"]
-  } : {
-    name: "Production",
-    server: "https://lydxigat68.execute-api.us-east-1.amazonaws.com/prod",
-    supportedBaseDomains: ["gxlnk.com"]
-  }
-};
-var configs_default = configs;
-
 // src/APIService.ts
 var APIService = class {
+  constructor(configs) {
+    this.configs = configs;
+  }
   async getLinkData(domain, slug, apiKey) {
     try {
-      const url = new URL(`${configs_default.env.server}/sdk/v1/links/data`);
+      const url = new URL(`${this.configs.env.server}/sdk/v1/links/data`);
       url.searchParams.append("domain", domain);
       url.searchParams.append("slug", slug);
       const response = await fetch(url.toString(), {
@@ -63,7 +51,24 @@ var APIService = class {
     }
   }
 };
-var apiService = new APIService();
+var APIService_default = APIService;
+
+// src/configs.ts
+var getConfigs = (isDev) => {
+  return {
+    brand: "Polar",
+    env: isDev ? {
+      name: "Development",
+      server: "https://lydxigat68.execute-api.us-east-1.amazonaws.com/dev",
+      supportedBaseDomains: ["makelabs.ai"]
+    } : {
+      name: "Production",
+      server: "https://lydxigat68.execute-api.us-east-1.amazonaws.com/prod",
+      supportedBaseDomains: ["gxlnk.com"]
+    }
+  };
+};
+var configs_default = getConfigs;
 
 // src/index.ts
 var parseUrlData = () => {
@@ -97,32 +102,33 @@ var parseUrlData = () => {
   };
   return { domain, slug, trackData };
 };
-var isPolarUrl = (url) => {
-  const host = new URL(url).host;
-  for (const baseDomain in configs_default.env.supportedBaseDomains) {
-    if (host.endsWith("." + baseDomain)) {
-      return true;
-    }
-  }
-  return false;
-};
 var PolarSDK = class {
-  // static isDevelopmentEnabled = false
   constructor() {
-    this.baseUrl = configs_default.env.server;
+    this.configs = configs_default(false);
+    this.apiService = new APIService_default(this.configs);
+    this.isPolarUrl = (url) => {
+      const host = new URL(url).host;
+      for (const baseDomain in this.configs.env.supportedBaseDomains) {
+        if (host.endsWith("." + baseDomain)) {
+          return true;
+        }
+      }
+      return false;
+    };
     this.apiKey = null;
   }
-  setBaseUrl(url) {
-    this.baseUrl = url.replace(/\/$/, "");
+  setDevelopmentMode() {
+    this.configs = configs_default(true);
+    this.apiService = new APIService_default(this.configs);
   }
   async init(apiKey, options, callback) {
     try {
       this.apiKey = apiKey;
       const { domain, trackData, slug } = parseUrlData();
-      if (!isPolarUrl(trackData.url)) {
+      if (!this.isPolarUrl(trackData.url)) {
         return;
       }
-      const linkData = await apiService.getLinkData(domain || "", slug || "", apiKey);
+      const linkData = await this.apiService.getLinkData(domain || "", slug || "", apiKey);
       if (!linkData) {
         throw new Error("Failed to get link data");
       }
@@ -152,6 +158,7 @@ var PolarSDK = class {
     }
   }
 };
+PolarSDK.isDevelopmentEnabled = false;
 if (typeof window !== "undefined") {
   window.polarSDK = new PolarSDK();
 }

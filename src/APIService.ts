@@ -1,4 +1,4 @@
-import configs from "./configs.js";
+import { Configs } from "./configs.js";
 
 interface AnalyticsTags {
     campaign: string;
@@ -31,10 +31,16 @@ export interface LinkResponse {
 }
 
 class APIService {
+    configs: Configs
+
+    constructor(configs: Configs) {
+        this.configs = configs
+    }
+
     async getLinkData(domain: string, slug: string, apiKey: string): Promise<LinkResponse | undefined> {
         try {
             // Fix URL parameters format
-            const url = new URL(`${configs.env.server}/sdk/v1/links/data`);
+            const url = new URL(`${this.configs.env.server}/sdk/v1/links/data`);
             url.searchParams.append('domain', domain);
             url.searchParams.append('slug', slug);
 
@@ -59,8 +65,4 @@ class APIService {
     }
 }
 
-// Create singleton instance
-const apiService = new APIService();
-
-export { apiService };
 export default APIService;
