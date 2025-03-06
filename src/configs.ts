@@ -8,7 +8,7 @@ type EnvConfigrationDescribe = {
 
 const configs = {
     brand: 'Polar',
-    env: PolarSDK.isDevelopmentEnabled ? {
+    env: false ? {
         name: 'Development',
         server: 'https://lydxigat68.execute-api.us-east-1.amazonaws.com/dev',
         supportedBaseDomains: ["makelabs.ai"]

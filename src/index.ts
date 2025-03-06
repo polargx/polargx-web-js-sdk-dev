@@ -57,7 +57,7 @@ export class PolarSDK {
     private baseUrl: string;
     private apiKey: string | null;
 
-    static isDevelopmentEnabled = false
+    // static isDevelopmentEnabled = false
   
     constructor() {
         this.baseUrl = configs.env.server;

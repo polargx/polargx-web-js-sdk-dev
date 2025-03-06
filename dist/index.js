@@ -28,7 +28,7 @@ module.exports = __toCommonJS(src_exports);
 // src/configs.ts
 var configs = {
   brand: "Polar",
-  env: src_default.isDevelopmentEnabled ? {
+  env: false ? {
     name: "Development",
     server: "https://lydxigat68.execute-api.us-east-1.amazonaws.com/dev",
     supportedBaseDomains: ["makelabs.ai"]
@@ -107,6 +107,7 @@ var isPolarUrl = (url) => {
   return false;
 };
 var PolarSDK = class {
+  // static isDevelopmentEnabled = false
   constructor() {
     this.baseUrl = configs_default.env.server;
     this.apiKey = null;
@@ -151,7 +152,6 @@ var PolarSDK = class {
     }
   }
 };
-PolarSDK.isDevelopmentEnabled = false;
 if (typeof window !== "undefined") {
   window.polarSDK = new PolarSDK();
 }
