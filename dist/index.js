@@ -20,7 +20,7 @@ var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: tru
 // src/index.ts
 var src_exports = {};
 __export(src_exports, {
-  PolarApp: () => PolarApp,
+  PolarSDK: () => PolarSDK,
   default: () => src_default
 });
 module.exports = __toCommonJS(src_exports);
@@ -106,7 +106,7 @@ var isPolarUrl = (url) => {
   }
   return false;
 };
-var PolarApp = class {
+var PolarSDK = class {
   constructor() {
     this.baseUrl = configs_default.env.server;
     this.apiKey = null;
@@ -151,9 +151,9 @@ var PolarApp = class {
     }
   }
 };
-PolarApp.isDevelopmentEnabled = false;
+PolarSDK.isDevelopmentEnabled = false;
 if (typeof window !== "undefined") {
-  window.polarApp = new PolarApp();
+  window.polarSDK = new PolarSDK();
 }
 function generateSessionId() {
   return "session_" + Math.random().toString(36).substr(2, 9);
@@ -161,9 +161,9 @@ function generateSessionId() {
 function generateIdentityId() {
   return "identity_" + Math.random().toString(36).substr(2, 9);
 }
-var src_default = PolarApp;
+var src_default = PolarSDK;
 // Annotate the CommonJS export names for ESM import in node:
 0 && (module.exports = {
-  PolarApp
+  PolarSDK
 });
 //# sourceMappingURL=index.js.map
