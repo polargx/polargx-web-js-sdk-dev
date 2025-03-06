@@ -108,12 +108,13 @@ var PolarSDK = class {
     this.apiService = new APIService_default(this.configs);
     this.isPolarUrl = (url) => {
       const host = new URL(url).host;
-      for (const baseDomain in this.configs.env.supportedBaseDomains) {
+      var count = 0;
+      this.configs.env.supportedBaseDomains.forEach((baseDomain) => {
         if (host.endsWith("." + baseDomain)) {
-          return true;
+          count++;
         }
-      }
-      return false;
+      });
+      return count > 0;
     };
     this.apiKey = null;
   }
