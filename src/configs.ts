@@ -1,4 +1,4 @@
-import PolarApp from "./index"
+import PolarSDK from "./index"
 
 type EnvConfigrationDescribe = {
     name: string
@@ -8,7 +8,7 @@ type EnvConfigrationDescribe = {
 
 const configs = {
     brand: 'Polar',
-    env: PolarApp.isDevelopmentEnabled ? {
+    env: PolarSDK.isDevelopmentEnabled ? {
         name: 'Development',
         server: 'https://lydxigat68.execute-api.us-east-1.amazonaws.com/dev',
         supportedBaseDomains: ["makelabs.ai"]

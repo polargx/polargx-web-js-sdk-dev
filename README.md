@@ -16,12 +16,12 @@ yarn add polargx-web-sdk
 
 ```typescript
 // Basic initialization
-import { PolarApp } from 'polargx-web-sdk';
+import { PolarSDK } from 'polargx-web-sdk';
 
-const polarApp = new PolarApp();
+const polarSdk = new PolarSDK();
 
 // Initialize with callback
-polarApp.init('your_api_key', undefined, (error, data) => {
+polarSdk.init('your_api_key', undefined, (error, data) => {
   if (error) {
     console.error('Error:', error);
     return;
@@ -37,7 +37,7 @@ polarApp.init('your_api_key', undefined, (error, data) => {
 // Initialize with async/await
 async function initSdk() {
   try {
-    const data = await polarApp.init('your_api_key');
+    const data = await polarSdk.init('your_api_key');
     console.log('Initialization successful:', data);
   } catch (error) {
     console.error('Initialization failed:', error);

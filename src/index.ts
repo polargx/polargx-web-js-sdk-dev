@@ -53,7 +53,7 @@ const isPolarUrl = (url: string): boolean => {
     return false
 }
 
-export class PolarApp {
+export class PolarSDK {
     private baseUrl: string;
     private apiKey: string | null;
 
@@ -110,7 +110,7 @@ export class PolarApp {
 }
 
 if (typeof window !== 'undefined') {
-    (window as any).polarApp = new PolarApp();
+    (window as any).polarSDK = new PolarSDK();
 }
 function generateSessionId(): string {
     return 'session_' + Math.random().toString(36).substr(2, 9);
@@ -119,4 +119,4 @@ function generateSessionId(): string {
 function generateIdentityId(): string {
     return 'identity_' + Math.random().toString(36).substr(2, 9);
 }
-export default PolarApp;
+export default PolarSDK;
