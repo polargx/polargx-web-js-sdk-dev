@@ -123,3 +123,5 @@ function generateIdentityId(): string {
     return 'identity_' + Math.random().toString(36).substr(2, 9);
 }
 export default PolarSDK;
+
+export {PolarCallback, PolarError, PolarInitOptions, PolarResponse} from './types/index'

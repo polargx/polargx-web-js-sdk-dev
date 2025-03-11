@@ -1,72 +1,85 @@
-# PolarGX Web SDK
+## PolarGX Web SDK Installation Guide
 
-A lightweight implementation of PolarGX Web SDK for web applications.
+### 1. Create and setup Polar app: 
+- Register PolarGX account at https://app.polargx.com, after signup `unnamed` app has been created automatically.
+- Setting your app in _App Settings > App Information_
+- Create an API Key in _App Settings > API Keys_ with _Mobile apps / frontend_ purpose
+- Configure your domain in _Link Attribution > Configuration > Link domain section_ with:
+  + Default link domain.
+  + Alternate link domain.
+- Configure your iOS Redirects in _Link Attribution > Configuration > Desktop Redirects section > Redirects_ with:
+  + Desktop URL: Help your link redirects to your url.
+  
+### 2. Adding PolarGX SDK
+#### 2.1. Use NPM
+- Install NPM: please follow this [Guide: getting started](https://docs.npmjs.com/downloading-and-installing-node-js-and-npm).
+- To Add PolarGX dependency, run:
+    ```
+    npm install PolarGX
+    ```
+### 4. Use PolarGX SDK
+#### 4.1. In a React.js Project
 
-## Installation
+- Get your **API Key** from [PolarGX](https://app.polargx.com).
+- Import and initialize PolarGX in your React app.
 
-```bash
-# Using npm
-npm i polargx-web-sdk
+#### Example Implementation
 
-# Using yarn
-yarn add polargx-web-sdk
+```javascript
+import { useEffect } from 'react';
+import PolarGX from 'PolarGX';
+
+const YOUR_API_KEY = "your-api-key";
+
+function App() {
+  const [data, setData] = useState()
+  useEffect(() => {
+    const polarGX = new PolarGX(); 
+    polarGX.init(YOUR_API_KEY, undefined, (error:any, data:any) =>{
+        if(error){
+          // Handle error
+        }
+        const data_parsed = data
+        setData(data_parsed)
+        //Handle data
+    })
+  }, []);
+
+  return (
+    <div>
+      <h1>Welcome to PolarGX Integration</h1>
+    </div>
+  );
+}
+
+export default App;
 ```
-
-## Usage
-
 ```typescript
-// Basic initialization
-import { PolarSDK } from 'polargx-web-sdk';
+import { useEffect } from 'react';
+import PolarGX , { PolarResponse, PolarError } from 'PolarGX';
 
-const polarSdk = new PolarSDK();
+const YOUR_API_KEY = "your-api-key";
 
-// Initialize with callback
-polarSdk.init('your_api_key', undefined, (error, data) => {
-  if (error) {
-    console.error('Error:', error);
-    return;
-  }
+function App() {
+  const [data, setData] = useState()
+  useEffect(() => {
+    const polarGX = new PolarGX(); 
+    polarGX.init(YOUR_API_KEY, undefined, (error: PolarError | null, data?: PolarResponse | null) =>{
+        if(error){
+          // Handle error
+        }
+        const data_parsed = data
+        setData(data_parsed)
+        //Handle data
+    })
+  }, []);
 
-  // Handle successful initialization
-  console.log('Link data:', data);
-
-  // Access parsed data
-  const parsedData = data?.data_parsed;
-});
-
-// Initialize with async/await
-async function initSdk() {
-  try {
-    const data = await polarSdk.init('your_api_key');
-    console.log('Initialization successful:', data);
-  } catch (error) {
-    console.error('Initialization failed:', error);
-  }
-}
-
-// Example response data structure
-interface SdkResponse {
-  //working
+  return (
+    <div>
+      <h1>Welcome to PolarGX Integration</h1>
+    </div>
+  );
 }
 ```
 
-## API Reference
 
-### init(apiKey: string, options?: PolarInitOptions, callback?: PolarCallback)
-
-Initialize the SDK with your Polar API key and handle deep linking data.
-
-#### Parameters
-
-- `apiKey` (string, required): Your Polar API key
-- `options` (PolarInitOptions, optional): Configuration options
-- `callback` (function, optional): Callback function for handling initialization result
-
-#### Callback Parameters
-
-- `error`: Error object if initialization fails
-- `data`: Response data containing link information
-
-## License
-
-MIT
