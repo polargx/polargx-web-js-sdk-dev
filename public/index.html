@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PolarSDK Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .card {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            margin: 4px 2px;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+        input[type="text"] {
+            width: 100%;
+            padding: 12px 20px;
+            margin: 8px 0;
+            box-sizing: border-box;
+            border: 2px solid #ccc;
+            border-radius: 4px;
+        }
+        #result {
+            background-color: #f8f9fa;
+            padding: 10px;
+            border-radius: 4px;
+            white-space: pre-wrap;
+        }
+        .controls {
+            display: flex;
+            gap: 10px;
+        }
+        .status-bar {
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 15px;
+        }
+        .status-success {
+            color: #5cb85c;
+            background-color: #dff0d8;
+        }
+        .status-error {
+            color: #d9534f;
+            background-color: #f2dede;
+        }
+    </style>
+    <!-- Import the SDK with the correct path -->
+    <script src="../dist/index.js"></script>
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <h1>PolarSDK Test Page</h1>
+            <p>This page allows you to test the PolarSDK functionality.</p>
+            
+            <div id="sdk-status" class="status-bar"></div>
+            
+            <div>
+                <label for="apiKey">API Key:</label>
+                <input type="text" id="apiKey" placeholder="Enter your API key">
+            </div>
+            
+            <div class="controls">
+                <button id="initSDK">Initialize SDK</button>
+                <button id="enableDevMode">Enable Dev Mode</button>
+                <button id="checkSDK">Check SDK Status</button>
+            </div>
+            
+            <div>
+                <h3>Test URL Parameters</h3>
+                <div>
+                    <label for="clurl">Click URL (__clurl):</label>
+                    <input type="text" id="clurl" placeholder="example.gxlnk.com/slug">
+                </div>
+                
+                <div>
+                    <label for="clid">Click ID (__clid):</label>
+                    <input type="text" id="clid" placeholder="click_id">
+                </div>
+                
+                <div>
+                    <label for="clsdkused">SDK Used (__clsdkused):</label>
+                    <input type="text" id="clsdkused" placeholder="sdk_type">
+                </div>
+                
+                <button id="applyParams">Apply Parameters</button>
+            </div>
+        </div>
+        
+        <div class="card">
+            <h2>Response</h2>
+            <div id="result">Results will appear here...</div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const resultDiv = document.getElementById('result');
+            const initSDKBtn = document.getElementById('initSDK');
+            const enableDevModeBtn = document.getElementById('enableDevMode');
+            const applyParamsBtn = document.getElementById('applyParams');
+            const checkSDKBtn = document.getElementById('checkSDK');
+            const sdkStatusDiv = document.getElementById('sdk-status');
+            
+            // Check SDK status
+            function checkSDKStatus() {
+                console.log("Window properties:", Object.keys(window).filter(key => 
+                    !key.startsWith('webkit') && 
+                    !['top', 'length', 'window', 'self', 'document'].includes(key)
+                ));
+                
+                if (window.polarSDK) {
+                    sdkStatusDiv.className = "status-bar status-success";
+                    sdkStatusDiv.textContent = "SDK loaded successfully!";
+                    window.polarSDK.setDevelopmentMode();
+                    // Display methods available on the SDK
+                    const methods = Object.getOwnPropertyNames(Object.getPrototypeOf(window.polarSDK))
+                        .filter(method => method !== 'constructor');
+                    
+                    console.log("SDK methods:", methods);
+                    return true;
+                } else {
+                    sdkStatusDiv.className = "status-bar status-error";
+                    sdkStatusDiv.textContent = "SDK not found. Make sure the path to index.js is correct.";
+                    console.error("SDK not found. Check that the script is being loaded correctly.");
+                    return false;
+                }
+            }
+            
+            // Check SDK status on page load
+            setTimeout(checkSDKStatus, 500); // Give a small delay to ensure SDK is loaded
+            
+            // Check SDK button
+            checkSDKBtn.addEventListener('click', function() {
+                const sdkLoaded = checkSDKStatus();
+                
+                if (sdkLoaded) {
+                    const methods = Object.getOwnPropertyNames(Object.getPrototypeOf(window.polarSDK))
+                        .filter(method => method !== 'constructor');
+                    
+                    displayResult('SDK Status', {
+                        loaded: true,
+                        methods: methods,
+                        configs: window.polarSDK.configs ? {
+                            env: window.polarSDK.configs.env.name,
+                            supportedDomains: window.polarSDK.configs.env.supportedBaseDomains
+                        } : 'Not accessible'
+                    });
+                } else {
+                    displayResult('SDK Status', {
+                        loaded: false,
+                        globalVariables: Object.keys(window).filter(key => 
+                            !key.startsWith('webkit') && 
+                            !['top', 'length', 'window', 'self', 'document'].includes(key)
+                        ).slice(0, 20) // Show first 20 to avoid overflow
+                    });
+                }
+            });
+            
+            // Display results
+            function displayResult(title, data) {
+                resultDiv.innerHTML = `<strong>${title}:</strong>\n${JSON.stringify(data, null, 2)}`;
+            }
+            
+            // Initialize SDK
+            initSDKBtn.addEventListener('click', async function() {
+                const apiKey = document.getElementById('apiKey').value;
+                if (!apiKey) {
+                    displayResult('Error', 'API Key is required');
+                    return;
+                }
+                
+                if (!window.polarSDK) {
+                    displayResult('Error', 'SDK not loaded. Please refresh the page and try again.');
+                    return;
+                }
+                
+                try {
+                    // Check if we need to wait for the promise to resolve
+                    const initResult = window.polarSDK.init(apiKey, {}, function(error, response) {
+                        if (error) {
+                            displayResult('Callback Error', error);
+                        } else {
+                            displayResult('Callback Success', response);
+                        }
+                    });
+                    
+                    // If init returns a promise, log it
+                    if (initResult instanceof Promise) {
+                        console.log("Init returned a promise, waiting for it to resolve...");
+                        console.log(initResult);
+                        initResult.then(result => {
+                            console.log("Promise resolved:", result);
+                        }).catch(err => {
+                            console.error("Promise rejected:", err);
+                        });
+                    }
+                } catch (error) {
+                    displayResult('Error', {
+                        message: error.message,
+                        stack: error.stack
+                    });
+                }
+            });
+            
+            // Enable Dev Mode
+            enableDevModeBtn.addEventListener('click', function() {
+                if (!window.polarSDK) {
+                    displayResult('Error', 'SDK not loaded. Please refresh the page and try again.');
+                    return;
+                }
+                
+                try {
+                    window.polarSDK.setDevelopmentMode();
+                    
+                    // Display current configuration
+                    const currentConfig = window.polarSDK.configs ? {
+                        env: window.polarSDK.configs.env.name,
+                        server: window.polarSDK.configs.env.server,
+                        supportedDomains: window.polarSDK.configs.env.supportedBaseDomains
+                    } : 'Configuration not accessible';
+                    
+                    displayResult('Development Mode Enabled', {
+                        mode: 'Development',
+                        config: currentConfig
+                    });
+                } catch (error) {
+                    displayResult('Error', {
+                        message: error.message,
+                        stack: error.stack
+                    });
+                }
+            });
+            
+            // Apply URL Parameters
+            applyParamsBtn.addEventListener('click', function() {
+                const clurl = document.getElementById('clurl').value;
+                const clid = document.getElementById('clid').value;
+                const clsdkused = document.getElementById('clsdkused').value;
+                
+                // Build query parameters
+                const params = new URLSearchParams();
+                if (clurl) params.set('__clurl', clurl);
+                if (clid) params.set('__clid', clid);
+                if (clsdkused) params.set('__clsdkused', clsdkused);
+                
+                // Update URL without reloading page
+                const newUrl = window.location.pathname + '?' + params.toString();
+                window.history.pushState({ path: newUrl }, '', newUrl);
+                
+                displayResult('URL Parameters Applied', {
+                    __clurl: clurl,
+                    __clid: clid,
+                    __clsdkused: clsdkused,
+                    fullUrl: window.location.href
+                });
+            });
+        });
+    </script>
+</body>
+</html>

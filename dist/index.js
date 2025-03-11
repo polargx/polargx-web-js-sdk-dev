@@ -16,15 +16,16 @@ var __copyProps = (to, from, except, desc) => {
   return to;
 };
 var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
-
+var module = {};
 // src/index.ts
 var src_exports = {};
 __export(src_exports, {
   PolarSDK: () => PolarSDK,
   default: () => src_default
 });
-module.exports = __toCommonJS(src_exports);
+console.log("loading Polar SDK");
 
+module.exports = __toCommonJS(src_exports);
 // src/APIService.ts
 var APIService = class {
   constructor(configs) {
@@ -109,6 +110,7 @@ var PolarSDK = class {
     this.isPolarUrl = (url) => {
       const host = new URL(url).host;
       var count = 0;
+      console.log(this.configs.env.supportedBaseDomains);
       this.configs.env.supportedBaseDomains.forEach((baseDomain) => {
         if (host.endsWith("." + baseDomain)) {
           count++;
@@ -126,6 +128,8 @@ var PolarSDK = class {
     try {
       this.apiKey = apiKey;
       const { domain, trackData, slug } = parseUrlData();
+      console.log(parseUrlData());
+      console.log(this.isPolarUrl(trackData.url));
       if (!this.isPolarUrl(trackData.url)) {
         return;
       }
