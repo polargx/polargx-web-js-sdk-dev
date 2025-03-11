@@ -102,12 +102,13 @@ export class PolarSDK {
 
     isPolarUrl = (url: string): boolean => {
         const host = (new URL(url)).host
-        for (const baseDomain in this.configs.env.supportedBaseDomains) {
+        var count = 0;
+        this.configs.env.supportedBaseDomains.forEach((baseDomain) => {
             if (host.endsWith('.' + baseDomain)) {
-                return true
+                count++;
             }
-        }
-        return false
+        })
+        return count > 0
     }
 }
 
