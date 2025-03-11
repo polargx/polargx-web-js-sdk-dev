@@ -17,12 +17,12 @@
     ```
     npm install PolarGX
     ```
-### 4. Use PolarGX SDK
-#### 4.1. In a React.js Project
+### 3. Use PolarGX SDK
 
 - Get your **API Key** from [PolarGX](https://app.polargx.com).
 - Import and initialize PolarGX in your React app.
 
+#### 3.1. In a React.js Project (Javascript)
 #### Example Implementation
 
 ```javascript
@@ -54,6 +54,9 @@ function App() {
 
 export default App;
 ```
+
+#### 3.2. In a React.js Project (Typescript)
+#### Example Implementation
 ```typescript
 import { useEffect } from 'react';
 import PolarGX , { PolarResponse, PolarError } from 'PolarGX';
