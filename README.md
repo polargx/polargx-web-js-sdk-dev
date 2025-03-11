@@ -62,8 +62,12 @@
 - The PolarGX use the ```init()``` method to initialize.
 
 ```Javascript
-// Replace YOUR_KEY with your API Key
-polarGX.init(YOUR_API_KEY, undefined, (error, data) => {
+// Replace YOUR_API_KEY with your API Key
+import { PolarSDK } from 'PolarGX';
+
+const polarSdk = new PolarSDK();
+
+polarSDK.init(YOUR_API_KEY, undefined, (error, data) => {
     if (error) {
       // Handle error
     }
