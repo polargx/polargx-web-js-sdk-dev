@@ -16,12 +16,12 @@ const getConfigs = (isDev: boolean): Configs => {
         brand: 'Polar',
         env: isDev ? {
             name: 'Development',
-            server: 'https://lydxigat68.execute-api.us-east-1.amazonaws.com/dev',
-            supportedBaseDomains: ["makelabs.ai"]
+            server: 'https://8mr6rftgmb.execute-api.us-east-1.amazonaws.com/prod',
+            supportedBaseDomains: ["makelabs.ai", "gxlnk.com"]
         } as EnvConfigrationDescribe 
         : {
             name: 'Production',
-            server: 'https://lydxigat68.execute-api.us-east-1.amazonaws.com/prod',
+            server: 'https://8mr6rftgmb.execute-api.us-east-1.amazonaws.com/dev',
             supportedBaseDomains: ["gxlnk.com"]
         } as EnvConfigrationDescribe
     }
