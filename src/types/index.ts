@@ -5,14 +5,11 @@ export interface PolarInitOptions {
 }
 
 export interface PolarResponse {
-    data_parsed?: {
-        bp_action?: string;
-        [key: string]: any;
-    };
-    session_id?: string;
-    identity_id?: string;
-    link?: string;
-    [key: string]: any;
+    analyticsTags: {[key: string]: any}
+    socialMediaTags: {[key: string]: any}
+    data: {[key: string]: any}
+    slug?: string
+    url?: string
 }
 
 export interface PolarError extends Error {

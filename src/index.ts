@@ -32,22 +32,13 @@ export class PolarSDK {
                 return
             }
             const linkData = await this.apiService.getLinkData(domain, slug, apiKey)
-            if (!linkData) {
+            if (!linkData?.data?.sdkLinkData) {
                 throw new Error('Link is not found!');
             }
 
             await this.apiService.updateLinkClick(clickUnid, true, apiKey)
 
-            const polarResponse: PolarResponse = {
-                data_parsed: {
-                    analytics_tags: linkData.data.sdkLinkData.analyticsTags,
-                    ...linkData.data.sdkLinkData.data
-                },
-                session_id: generateSessionId(),
-                identity_id: generateIdentityId(),
-                link: linkData.data.sdkLinkData.url,
-                slug: linkData.data.sdkLinkData.slug
-            };
+            const polarResponse = linkData.data.sdkLinkData as PolarResponse
 
             if (typeof callback === 'function') {
                 callback(null, polarResponse);
@@ -79,9 +70,6 @@ export class PolarSDK {
 
 if (typeof window !== 'undefined') {
     (window as any).polarSDK = new PolarSDK();
-}
-function generateSessionId(): string {
-    return 'session_' + Math.random().toString(36).substr(2, 9);
 }
   
 function generateIdentityId(): string {
