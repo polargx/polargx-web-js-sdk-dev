@@ -24,19 +24,19 @@ export class PolarSDK {
                 correctApiKey = apiKey.substring(4)
             }
             this.apiKey = correctApiKey;
-            this.configs = getConfigs(true)
+            this.configs = getConfigs(isDev)
             this.apiService = new APIService(this.configs)
         
             const { domain, slug, clickUnid } = parsePolarParamsInQuery();
             if(!domain || !slug || !clickUnid){
                 return
             }
-            const linkData = await this.apiService.getLinkData(domain, slug, apiKey)
+            const linkData = await this.apiService.getLinkData(domain, slug, this.apiKey)
             if (!linkData?.data?.sdkLinkData) {
                 throw new Error('Link is not found!');
             }
 
-            await this.apiService.updateLinkClick(clickUnid, true, apiKey)
+            await this.apiService.updateLinkClick(clickUnid, true, this.apiKey)
 
             const polarResponse = linkData.data.sdkLinkData as PolarResponse
 
@@ -44,7 +44,8 @@ export class PolarSDK {
                 callback(null, polarResponse);
             }
         }catch (error) {
-            console.error('PolarSDK error:', error);
+            console.error('PolarSDK failed: ', error);
+            console.trace('PolarSDK failed: ', error);
             if (typeof callback === 'function') {
                 const polarError: PolarError = {
                     name: 'PolarError',

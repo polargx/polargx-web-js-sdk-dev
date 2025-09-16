@@ -120,23 +120,24 @@ var PolarSDK = class {
         correctApiKey = apiKey.substring(4);
       }
       this.apiKey = correctApiKey;
-      this.configs = configs_default(true);
+      this.configs = configs_default(isDev);
       this.apiService = new APIService_default(this.configs);
       const { domain, slug, clickUnid } = parsePolarParamsInQuery();
       if (!domain || !slug || !clickUnid) {
         return;
       }
-      const linkData = await this.apiService.getLinkData(domain, slug, apiKey);
+      const linkData = await this.apiService.getLinkData(domain, slug, this.apiKey);
       if (!((_a = linkData == null ? void 0 : linkData.data) == null ? void 0 : _a.sdkLinkData)) {
         throw new Error("Link is not found!");
       }
-      await this.apiService.updateLinkClick(clickUnid, true, apiKey);
+      await this.apiService.updateLinkClick(clickUnid, true, this.apiKey);
       const polarResponse = linkData.data.sdkLinkData;
       if (typeof callback === "function") {
         callback(null, polarResponse);
       }
     } catch (error) {
-      console.error("PolarSDK error:", error);
+      console.error("PolarSDK failed: ", error);
+      console.trace("PolarSDK failed: ", error);
       if (typeof callback === "function") {
         const polarError = {
           name: "PolarError",
