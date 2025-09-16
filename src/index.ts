@@ -1,77 +1,42 @@
 import APIService from "./APIService";
-import getConfigs from "./configs";
+import getConfigs, { Configs } from "./configs";
+import { parsePolarParamsInQuery } from "./parser";
 import { PolarInitOptions, PolarCallback, PolarResponse, PolarError } from "./types/index";
 
-const parseUrlData = () => {
-    if (typeof window === 'undefined') {
-        return { domain: '', slug: '', trackData: {
-            unid: undefined,
-            url: "",
-            sdkUsed: undefined
-        } };
-    }
-  
-    const urlParams = new URLSearchParams(window.location.search);
-    let clickUrl = urlParams.get('__clurl') || '';
-    if (!clickUrl.startsWith('http')) {
-        clickUrl = `https://${clickUrl}`;
-    }
-  
-    let domain = '';
-    let slug = '';
-    
-    try {
-        const url = new URL(clickUrl);
-        const pathname = url.pathname;
-        const parts = pathname.replace(/^\//, '').split('/');
-        
-        // Get slug from pathname
-        slug = parts[0] || '';
-        
-        // Get domain from hostname (e.g., "dongo111" from "dongo111.webapp.ai")
-        domain = url.hostname.split('.')[0] || '';
-    } catch (error) {
-            console.error('Failed to parse Click URL:', error);
-    }
-  
-    const trackData = {
-        unid: urlParams.get('__clid') || undefined,
-        url: clickUrl,
-        sdkUsed: urlParams.get('__clsdkused') || undefined
-    };
-  
-    return { domain, slug, trackData };
-};
+
 
 export class PolarSDK {
     private apiKey: string | null;
 
-    configs = getConfigs(false);
-    apiService = new APIService(this.configs)
-
-    static isDevelopmentEnabled = false
-  
+    configs!: Configs
+    apiService!: APIService
+    
     constructor() {
         this.apiKey = null;
-    }
-
-    setDevelopmentMode() {
-        this.configs = getConfigs(true)
-        this.apiService = new APIService(this.configs)
     }
   
     async init(apiKey: string, options?: PolarInitOptions | undefined, callback?: PolarCallback) {
         try{
-            this.apiKey = apiKey;
+            let isDev = false
+            let correctApiKey = apiKey
+            if (apiKey.startsWith('dev_')) {
+                isDev = true
+                correctApiKey = apiKey.substring(4)
+            }
+            this.apiKey = correctApiKey;
+            this.configs = getConfigs(true)
+            this.apiService = new APIService(this.configs)
         
-            const { domain, trackData, slug } = parseUrlData();
-            if(!this.isPolarUrl(trackData.url)){
+            const { domain, slug, clickUnid } = parsePolarParamsInQuery();
+            if(!domain || !slug || !clickUnid){
                 return
             }
-            const linkData = await this.apiService.getLinkData(domain || '', slug || '', apiKey)
+            const linkData = await this.apiService.getLinkData(domain, slug, apiKey)
             if (!linkData) {
-                throw new Error('Failed to get link data');
+                throw new Error('Link is not found!');
             }
+
+            await this.apiService.updateLinkClick(clickUnid, true, apiKey)
 
             const polarResponse: PolarResponse = {
                 data_parsed: {
@@ -88,7 +53,7 @@ export class PolarSDK {
                 callback(null, polarResponse);
             }
         }catch (error) {
-            console.error('Polar initialization error:', error);
+            console.error('PolarSDK error:', error);
             if (typeof callback === 'function') {
                 const polarError: PolarError = {
                     name: 'PolarError',

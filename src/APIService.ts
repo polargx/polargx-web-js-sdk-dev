@@ -38,29 +38,42 @@ class APIService {
     }
 
     async getLinkData(domain: string, slug: string, apiKey: string): Promise<LinkResponse | undefined> {
-        try {
-            // Fix URL parameters format
-            const url = new URL(`${this.configs.env.server}/sdk/v1/links/data`);
-            url.searchParams.append('domain', domain);
-            url.searchParams.append('slug', slug);
+        // Fix URL parameters format
+        const url = new URL(`${this.configs.env.server}/api/v1/links/resolve`);
+        url.searchParams.append('domain', domain);
+        url.searchParams.append('slug', slug);
 
-            const response = await fetch(url.toString(), {
-                headers: {
-                    "x-api-key": apiKey
-                }
-            });
-
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+        const response = await fetch(url.toString(), {
+            method: "GET",
+            headers: {
+                "x-api-key": apiKey
             }
+        });
 
-            // Await the JSON parsing
-            const responseData: LinkResponse = await response.json();
-            return responseData
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
         }
-        catch (err) {
-            console.error('getLinkData error:', err);
-            return undefined;
+
+        // Await the JSON parsing
+        const responseData: LinkResponse = await response.json();
+        return responseData
+    }
+
+    async updateLinkClick(clickUnid: string, sdkUsed: boolean, apiKey: string): Promise<undefined> {
+        // Fix URL parameters format
+        const url = new URL(`${this.configs.env.server}//api/v1/links/clicks/${clickUnid}`);
+        const response = await fetch(url.toString(), {
+            method: "PUT",
+            headers: {
+                "x-api-key": apiKey
+            },
+            body: JSON.stringify({
+                SdkUsed: sdkUsed
+            })
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
         }
     }
 }
