@@ -31,23 +31,34 @@ var APIService = class {
     this.configs = configs;
   }
   async getLinkData(domain, slug, apiKey) {
-    try {
-      const url = new URL(`${this.configs.env.server}/sdk/v1/links/data`);
-      url.searchParams.append("domain", domain);
-      url.searchParams.append("slug", slug);
-      const response = await fetch(url.toString(), {
-        headers: {
-          "x-api-key": apiKey
-        }
-      });
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+    const url = new URL(`${this.configs.env.server}/api/v1/links/resolve`);
+    url.searchParams.append("domain", domain);
+    url.searchParams.append("slug", slug);
+    const response = await fetch(url.toString(), {
+      method: "GET",
+      headers: {
+        "x-api-key": apiKey
       }
-      const responseData = await response.json();
-      return responseData;
-    } catch (err) {
-      console.error("getLinkData error:", err);
-      return void 0;
+    });
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    const responseData = await response.json();
+    return responseData;
+  }
+  async updateLinkClick(clickUnid, sdkUsed, apiKey) {
+    const url = new URL(`${this.configs.env.server}/api/v1/links/clicks/${clickUnid}`);
+    const response = await fetch(url.toString(), {
+      method: "PUT",
+      headers: {
+        "x-api-key": apiKey
+      },
+      body: JSON.stringify({
+        SdkUsed: sdkUsed
+      })
+    });
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
     }
   }
 };
@@ -59,53 +70,34 @@ var getConfigs = (isDev) => {
     brand: "Polar",
     env: isDev ? {
       name: "Development",
-      server: "https://lydxigat68.execute-api.us-east-1.amazonaws.com/dev",
-      supportedBaseDomains: ["makelabs.ai"]
+      server: "https://8mr6rftgmb.execute-api.us-east-1.amazonaws.com/dev",
+      supportedBaseDomains: ["biglittlecookies.com"]
     } : {
       name: "Production",
-      server: "https://lydxigat68.execute-api.us-east-1.amazonaws.com/prod",
+      server: "https://8mr6rftgmb.execute-api.us-east-1.amazonaws.com/prod",
       supportedBaseDomains: ["gxlnk.com"]
     }
   };
 };
 var configs_default = getConfigs;
 
-// src/index.ts
-var parseUrlData = () => {
+// src/parser.ts
+var parsePolarParamsInQuery = () => {
+  var _a, _b, _c;
   if (typeof window === "undefined") {
-    return { domain: "", slug: "", trackData: {
-      unid: void 0,
-      url: "",
-      sdkUsed: void 0
-    } };
+    return {};
   }
   const urlParams = new URLSearchParams(window.location.search);
-  let clickUrl = urlParams.get("__clurl") || "";
-  if (!clickUrl.startsWith("http")) {
-    clickUrl = `https://${clickUrl}`;
-  }
-  let domain = "";
-  let slug = "";
-  try {
-    const url = new URL(clickUrl);
-    const pathname = url.pathname;
-    const parts = pathname.replace(/^\//, "").split("/");
-    slug = parts[0] || "";
-    domain = url.hostname.split(".")[0] || "";
-  } catch (error) {
-    console.error("Failed to parse Click URL:", error);
-  }
-  const trackData = {
-    unid: urlParams.get("__clid") || void 0,
-    url: clickUrl,
-    sdkUsed: urlParams.get("__clsdkused") || void 0
+  return {
+    domain: (_a = urlParams.get("__subdomain")) != null ? _a : void 0,
+    slug: (_b = urlParams.get("__slug")) != null ? _b : void 0,
+    clickUnid: (_c = urlParams.get("__clid")) != null ? _c : void 0
   };
-  return { domain, slug, trackData };
 };
+
+// src/index.ts
 var PolarSDK = class {
   constructor() {
-    this.configs = configs_default(false);
-    this.apiService = new APIService_default(this.configs);
     this.isPolarUrl = (url) => {
       const host = new URL(url).host;
       var count = 0;
@@ -118,36 +110,33 @@ var PolarSDK = class {
     };
     this.apiKey = null;
   }
-  setDevelopmentMode() {
-    this.configs = configs_default(true);
-    this.apiService = new APIService_default(this.configs);
-  }
   async init(apiKey, options, callback) {
+    var _a;
     try {
-      this.apiKey = apiKey;
-      const { domain, trackData, slug } = parseUrlData();
-      if (!this.isPolarUrl(trackData.url)) {
+      let isDev = false;
+      let correctApiKey = apiKey;
+      if (apiKey.startsWith("dev_")) {
+        isDev = true;
+        correctApiKey = apiKey.substring(4);
+      }
+      this.apiKey = correctApiKey;
+      this.configs = configs_default(true);
+      this.apiService = new APIService_default(this.configs);
+      const { domain, slug, clickUnid } = parsePolarParamsInQuery();
+      if (!domain || !slug || !clickUnid) {
         return;
       }
-      const linkData = await this.apiService.getLinkData(domain || "", slug || "", apiKey);
-      if (!linkData) {
-        throw new Error("Failed to get link data");
+      const linkData = await this.apiService.getLinkData(domain, slug, apiKey);
+      if (!((_a = linkData == null ? void 0 : linkData.data) == null ? void 0 : _a.sdkLinkData)) {
+        throw new Error("Link is not found!");
       }
-      const polarResponse = {
-        data_parsed: {
-          analytics_tags: linkData.data.sdkLinkData.analyticsTags,
-          ...linkData.data.sdkLinkData.data
-        },
-        session_id: generateSessionId(),
-        identity_id: generateIdentityId(),
-        link: linkData.data.sdkLinkData.url,
-        slug: linkData.data.sdkLinkData.slug
-      };
+      await this.apiService.updateLinkClick(clickUnid, true, apiKey);
+      const polarResponse = linkData.data.sdkLinkData;
       if (typeof callback === "function") {
         callback(null, polarResponse);
       }
     } catch (error) {
-      console.error("Polar initialization error:", error);
+      console.error("PolarSDK error:", error);
       if (typeof callback === "function") {
         const polarError = {
           name: "PolarError",
@@ -159,15 +148,8 @@ var PolarSDK = class {
     }
   }
 };
-PolarSDK.isDevelopmentEnabled = false;
 if (typeof window !== "undefined") {
   window.polarSDK = new PolarSDK();
-}
-function generateSessionId() {
-  return "session_" + Math.random().toString(36).substr(2, 9);
-}
-function generateIdentityId() {
-  return "identity_" + Math.random().toString(36).substr(2, 9);
 }
 var src_default = PolarSDK;
 // Annotate the CommonJS export names for ESM import in node:

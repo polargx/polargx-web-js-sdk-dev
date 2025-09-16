@@ -61,7 +61,7 @@ class APIService {
 
     async updateLinkClick(clickUnid: string, sdkUsed: boolean, apiKey: string): Promise<undefined> {
         // Fix URL parameters format
-        const url = new URL(`${this.configs.env.server}//api/v1/links/clicks/${clickUnid}`);
+        const url = new URL(`${this.configs.env.server}/api/v1/links/clicks/${clickUnid}`);
         const response = await fetch(url.toString(), {
             method: "PUT",
             headers: {
